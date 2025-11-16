@@ -1,6 +1,6 @@
 # 📝 Nepali Grammar Error Correction (GEC) System
 
-A state-of-the-art Nepali Grammar Error Correction system using fine-tuned RoBERTa models with semantic awareness and token-level error detection.
+A state-of-the-art Nepali Grammar Error Correction system using fine-tuned RoBERTa models with semantic awareness and token-level error detection. [TRY HERE!](https://sudhaar-nepali-grammar-correction-rhqrzobqtavukjxj8xbedu.streamlit.app/)
 
 
 [![HuggingFace](https://img.shields.io/badge/🤗-HuggingFace-orange)](https://huggingface.co/DipeshChaudhary)
@@ -61,25 +61,26 @@ Unlike previous Nepali GEC attempts (like Sumit Aryal's work using NepBERTa with
                                         │                              │
                                         │  Threshold: 0.42            │
                                         │                              │
-                                        │  Output: [KEEP, ERROR, KEEP]│
+                                        │  Output: [ERROR, ERROR, KEEP]│
                                         └─────────────────────────────┘
                                                             │
                                                             ▼
                                         ┌─────────────────────────────┐
-                                        │  3. ERROR TYPE CLASSIFIER   │
+                                        │  3. ERROR TYPE CLASSIFIER    │
                                         │   Semantic Categorization    │
                                         │                              │
                                         │  Input: Error tokens         │
-                                        │  → RoBERTa → 7-class logits │
+                                        │  → RoBERTa → 7-class logits  │
                                         │                              │
                                         │  Classes: DELETE, REPLACE,   │
                                         │          APPEND, SWAP_*,     │
                                         │          MERGE_*             │
                                         │                              │
-                                        │  Reliability: 4 reliable,   │
+                                        │  Reliability: 4 reliable,    │
                                         │              3 unreliable    │
                                         │                              │
-                                        │  Output: [REPLACE@0.51]      │
+                                        │  Output: [SWAP_NEXT@0.51]    │
+                                        |          [SWAP_PREV@0.47]    |
                                         └─────────────────────────────┘
                                                             │
                                                             ▼
@@ -93,7 +94,8 @@ Unlike previous Nepali GEC attempts (like Sumit Aryal's work using NepBERTa with
                                         │  Strategies: Single/Double/  │
                                         │          Triple masking      │
                                         │                              │
-                                        │  Output: ["दिपेश"]           │
+                                        │  Output: [] (since swaps     │
+                                        | doesn't want MLM suggestions)|
                                         └─────────────────────────────┘
                                                             │
                                                             ▼
