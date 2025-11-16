@@ -364,7 +364,7 @@ nepali-semantic-gec/
 Our work builds upon the foundational Nepali Grammatical Error Correction dataset created by Sumit Aryal et al. [[2]](#references). This dataset represents the first comprehensive parallel corpus for Nepali GEC, containing 8.1 million source-target pairs.
 
 #### Dataset Creation Methodology
-The dataset was created to address the lack of publicly available parallel corpus for Nepali GEC. Authors decided to use the already available `A Large Scale Nepali Text Corpus` [5] as the base of raw nepali sentences.The authors identified five main types of Nepali grammatical errors and systematically generated them through data augmentation techniques.
+The dataset was created to address the lack of publicly available parallel corpus for Nepali GEC. Authors decided to use the already available `A Large Scale Nepali Text Corpus` [[5]](#references) as the base of raw nepali sentences.The authors identified five main types of Nepali grammatical errors and systematically generated them through data augmentation techniques.
 
 ##### Error Types Identified:
 1. **Verb Inflection** (39.39%): Modification of verb forms that disrupt subject-verb agreement, honorific levels, tense, and number
@@ -377,7 +377,7 @@ The dataset was created to address the lack of publicly available parallel corpu
    - **Auxiliary Verb Missing** (12.69%): Helping verbs that add tense/mood/voice omitted
 
 ##### Data Sourcing and Preprocessing:
-- **Source**: "A LARGE SCALE NEPALI TEXT CORPUS" (Lamsal, 2020) [[2]](#references)
+- **Source**: "A LARGE SCALE NEPALI TEXT CORPUS" (Lamsal, 2020) [[5]](#references)
 - **Filtering**: Sentences with 3-20 words, accounting for punctuation
 - **Cleaning**: Removed non-Devanagari script characters, converted English numerals to Nepali numerals
 - **Deduplication**: Extracted unique sentences to remove redundancy
@@ -464,11 +464,11 @@ From `notebooks/`:
 - With GPU: 0.3s per sentence
 
 ### Model Sizes
-- GED: 110M params
-- Binary: 110M params
-- Error Type: 110M params
-- MLM: 110M params
-- **Total**: ~440M params (~1.7GB disk)
+- GED: 125M params
+- Binary: 125M params
+- Error Type: 125M params
+- MLM: 125M params
+- **Total**: ~500M params (~2GB disk)
 
 
 ## 🤝 Contributing
