@@ -1,10 +1,17 @@
+#!/usr/bin/env python3
 """
-Streamlit UI for Nepali Grammar Error Correction
+Nepali Grammar Error Correction - Streamlit Web Interface
 """
 import streamlit as st
 import torch
+import logging
 from src.model_loader import load_models
 from src.inference import NepaliGECEngine
+from config import *
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Page config
 st.set_page_config(
@@ -44,64 +51,91 @@ st.markdown("""
         color: #dc3545;
         font-weight: bold;
     }
+    .model-link {
+        color: #0366d6;
+        text-decoration: none;
+    }
+    .model-link:hover {
+        text-decoration: underline;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # Header
 st.markdown('<p class="main-header">📝 Nepali Grammar Error Correction</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Semantic-Aware GEC using RoBERTa-based Models</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Semantic-Aware GEC using IRIIS-RESEARCH RoBERTa-based Models</p>', unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
     st.header("ℹ️ About")
     st.write("""
     This system uses **4 fine-tuned RoBERTa models** trained on IRIIS-RESEARCH's base model:
-    
+
     1. **GED Model**: Sentence-level correctness detection
     2. **Binary Token Classifier**: Pinpoints erroneous tokens (threshold: 0.42)
     3. **Error Type Classifier**: Identifies 7 error types
     4. **MLM Model**: Generates correction suggestions
-    
+
     **Key Features:**
     - Semantic-aware corrections
     - Token-level error detection
     - Multi-strategy MLM suggestions
     - Confidence-based ranking
     """)
-    
+
     st.divider()
-    
+
     # Device info
     device = "GPU (CUDA)" if torch.cuda.is_available() else "CPU"
     st.info(f"🖥️ Running on: **{device}**")
-    
+
     if torch.cuda.is_available():
         st.success(f"GPU: {torch.cuda.get_device_name(0)}")
-    
+
     st.divider()
-    
+
     st.header("📊 Model Statistics")
-    st.markdown("""
+    st.markdown(f"""
     **Training Data:**
-    - Base: Sumit Aryal's dataset
+    - Base: Sumit Aryal's dataset (8.1M pairs)
     - Model: IRIIS-RESEARCH RoBERTa (125M params)
-    
+
     **Performance:**
-    - Binary Detection: F1 optimized at 0.42
-    - Error Types: 7 classes (4 reliable, 3 unreliable)
-    - Reliable Tags: REPLACE, APPEND, SWAP_NEXT, SWAP_PREV
+    - GED Accuracy: 92.34%
+    - Binary Detection: F1 optimized at {BINARY_THRESHOLD}
+    - Error Types: 7 classes ({len(RELIABLE_TAGS)} reliable, {len(UNRELIABLE_TAGS)} unreliable)
+    - Reliable Tags: {', '.join(RELIABLE_TAGS)}
+    """)
+
+    st.divider()
+
+    st.header("🔗 Model Links")
+    st.markdown(f"""
+    - **GED**: [roberta-nepali-sequence-ged](https://huggingface.co/{GED_MODEL_HUB_ID})
+    - **Binary**: [nepali-gec-binary-detector](https://huggingface.co/{BINARY_MODEL_HUB_ID})
+    - **Error Type**: [nepali-gec-error-type-classifier](https://huggingface.co/{ERROR_TYPE_MODEL_HUB_ID})
+    - **MLM**: [nepali-mlm-guesser-finetuned-model-1](https://huggingface.co/{MLM_MODEL_HUB_ID})
     """)
 
 # Load models
 @st.cache_resource
 def initialize_engine():
-    models = load_models()
-    return NepaliGECEngine(models)
+    try:
+        logger.info("Starting model loading...")
+        models = load_models()
+        engine = NepaliGECEngine(models)
+        logger.info("Models loaded successfully")
+        return engine
+    except Exception as e:
+        logger.error(f"Failed to load models: {str(e)}")
+        st.error(f"❌ Failed to load models: {str(e)}")
+        st.stop()
 
 with st.spinner("Loading models... (This may take a minute on first run)"):
     engine = initialize_engine()
 
 st.success("✅ Models loaded successfully!")
+logger.info("Application ready for inference")
 
 # Main interface
 st.header("🔍 Grammar Correction")
@@ -112,11 +146,12 @@ with col1:
     st.subheader("Input")
     input_text = st.text_area(
         "Enter Nepali sentence:",
+        value=st.session_state.get('input_text', ''),
         height=150,
         placeholder="नेपाली वाक्य यहाँ लेख्नुहोस्...",
         help="Enter a Nepali sentence to check for grammatical errors"
     )
-    
+
     check_button = st.button("🔍 Check Grammar", type="primary", use_container_width=True)
 
 with col2:
@@ -125,36 +160,49 @@ with col2:
 
 # Processing
 if check_button and input_text.strip():
-    with st.spinner("Analyzing sentence..."):
-        result = engine.correct_sentence(input_text.strip())
-    
-    # Display results
-    with output_placeholder.container():
-        if result['is_correct']:
-            st.success("✅ Sentence is grammatically correct!")
-            st.markdown(f"**Confidence:** {result['confidence']:.2%}")
-        else:
-            st.warning("⚠️ Grammatical errors detected")
-            
-            # Corrected sentence
-            st.markdown("### Corrected Sentence")
-            st.info(result['corrected'])
-            
-            st.markdown(f"**Confidence:** {result['confidence']:.2%}")
-            st.markdown(f"**Message:** {result['message']}")
-            
-            # Alternative suggestions
-            if result['suggestions']:
-                st.markdown("### Alternative Suggestions")
-                for idx, sugg in enumerate(result['suggestions'], 1):
-                    with st.expander(f"Suggestion {idx} (Confidence: {sugg['confidence']:.2%})"):
-                        st.write(sugg['sentence'])
-                        st.caption(f"Changed: '{sugg['original_word']}' → '{sugg['corrected_word']}' at position {sugg['position']}")
+    try:
+        logger.info(f"Processing sentence: {input_text.strip()[:50]}...")
+        with st.spinner("Analyzing sentence..."):
+            result = engine.correct_sentence(input_text.strip())
+
+        # Display results
+        with output_placeholder.container():
+            if result['is_correct']:
+                st.success("✅ Sentence is grammatically correct!")
+                st.markdown(f"**Confidence:** {result['confidence']:.2%}")
+                logger.info(f"Sentence correct with confidence {result['confidence']:.3f}")
+            else:
+                st.warning("⚠️ Grammatical errors detected")
+
+                # Corrected sentence
+                st.markdown("### Corrected Sentence")
+                st.info(result['corrected'])
+
+                st.markdown(f"**Confidence:** {result['confidence']:.2%}")
+                st.markdown(f"**Iterations:** {result['iterations']}")
+                st.markdown(f"**Message:** {result['message']}")
+
+                # Alternative suggestions
+                if result['suggestions']:
+                    st.markdown("### Alternative Suggestions")
+                    for idx, sugg in enumerate(result['suggestions'], 1):
+                        with st.expander(f"Suggestion {idx} (Confidence: {sugg['confidence']:.2%})"):
+                            st.write(sugg['sentence'])
+                            if 'original_word' in sugg and 'corrected_word' in sugg:
+                                st.caption(f"Changed: '{sugg['original_word']}' → '{sugg['corrected_word']}' at position {sugg['position']}")
+
+        logger.info(f"Processing completed. Correct: {result['is_correct']}, Confidence: {result['confidence']:.3f}")
+
+    except Exception as e:
+        logger.error(f"Error during processing: {str(e)}")
+        st.error(f"❌ An error occurred during processing: {str(e)}")
+        st.info("Please try again or contact support if the issue persists.")
 
 # Examples
 st.divider()
 st.header("📚 Examples")
 
+# Use examples from config.py
 examples = [
     "नाम मेरो दिपेश हो ।",
     "म स्कुल जान्छु ।",
@@ -169,21 +217,24 @@ examples = [
 ]
 
 st.write("Try these example sentences:")
-cols = st.columns(len(examples))
+cols = st.columns(5)  # 5 columns for better layout
 for idx, (col, example) in enumerate(zip(cols, examples)):
     with col:
         if st.button(f"Example {idx+1}", use_container_width=True):
-            st.session_state.example_text = example
+            st.session_state.input_text = example
+            st.rerun()  # Refresh to update the text area
 
-if 'example_text' in st.session_state:
-    st.info(f"Selected: {st.session_state.example_text}")
+# Display selected example
+if 'input_text' in st.session_state and st.session_state.input_text in examples:
+    st.info(f"📝 Loaded example: {st.session_state.input_text}")
 
 # Footer
 st.divider()
 st.markdown("""
 <div style='text-align: center; color: #666;'>
     <p><strong>Semantic-Aware Nepali GEC System</strong></p>
-    <p>Built with 🔥 using RoBERTa, Transformers & Streamlit</p>
+    <p>Built with 🔥 using IRIIS-RESEARCH RoBERTa, Transformers & Streamlit</p>
     <p><em>Note: This is a research prototype. Corrections may not always be perfect.</em></p>
+    <p><small>Based on research by Sumit Aryal et al. | Models hosted on 🤗 HuggingFace</small></p>
 </div>
 """, unsafe_allow_html=True)
