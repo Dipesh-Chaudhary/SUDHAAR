@@ -178,7 +178,7 @@ During evaluation, `$DELETE`, `$MERGE_NEXT`, and `$MERGE_PREV` showed poor F1 sc
 - **Base Model**: IRIIS-RESEARCH/RoBERTa_Nepali_125M
 - **Training Data**: Sumit Aryal's dataset + augmentations
 - **Preprocessing**: Token-level annotation with 10 initial tags → refined to 7
-- **Training Setup**: See `notebooks/02_model_training.ipynb`
+- **Training Setup**: See `notebooks/`
 
 ### Performance Metrics
 
@@ -213,7 +213,7 @@ During evaluation, `$DELETE`, `$MERGE_NEXT`, and `$MERGE_PREV` showed poor F1 sc
 
 ### Threshold Optimization Results
 
-From `notebooks/` experiments:
+You can see `notebooks/` experiments:
 
 - **Binary Classifier**: Optimal F1 at threshold 0.42
 - **Reliable Tags** (REPLACE, APPEND, SWAP_*): F1 > 0.75
@@ -364,7 +364,7 @@ nepali-semantic-gec/
 Our work builds upon the foundational Nepali Grammatical Error Correction dataset created by Sumit Aryal et al. [[2]](#references). This dataset represents the first comprehensive parallel corpus for Nepali GEC, containing 8.1 million source-target pairs.
 
 #### Dataset Creation Methodology
-The dataset was created to address the lack of publicly available parallel corpus for Nepali GEC. The authors identified five main types of Nepali grammatical errors and systematically generated them through data augmentation techniques.
+The dataset was created to address the lack of publicly available parallel corpus for Nepali GEC. Authors decided to use the already available `A Large Scale Nepali Text Corpus` [5] as the base of raw nepali sentences.The authors identified five main types of Nepali grammatical errors and systematically generated them through data augmentation techniques.
 
 ##### Error Types Identified:
 1. **Verb Inflection** (39.39%): Modification of verb forms that disrupt subject-verb agreement, honorific levels, tense, and number
@@ -387,7 +387,7 @@ The dataset was created to address the lack of publicly available parallel corpu
 The authors employed systematic noise injection techniques to generate grammatical errors:
 
 1. **Verb Inflection Generation**:
-   - Extracted verbs using POS Tagger [[6]](#references)
+   - Extracted verbs using POS Tagger [[4]](#references)
    - Applied hybrid lemmatizer to get root forms [[3]](#references)
    - Collected verb suffixes and grouped by similarity
    - Replaced verb suffixes with similar alternatives from predefined dictionaries
@@ -444,9 +444,15 @@ The authors employed systematic noise injection techniques to generate grammatic
 
 [2] Aryal, S., Jaiswal, A. (2024). BERT-Based Nepali Grammatical Error Detection and Correction Leveraging a New Corpus. In IEEE Xplore. https://ieeexplore.ieee.org/document/10896043
 
+[3] D. P. D. L., “Nepali Lemmatizer,” 2020. https://github.com/dpakpdl/NepaliLemmatizer
+
+[4] E. 911, “Nepali POS Tagger,” 2018. https://github.com/e911/Nepali-POS-Tagger
+
+[5] R. Lamsal, “A Large Scale Nepali Text Corpus",IEEE Dataport, 2020.[Online]. Available: https://dx.doi.org/10.21227/jxrd-d245
+
 ## 📊 Evaluation Metrics
 
-From `notebooks/03_inference_orchestration.ipynb`:
+From `notebooks/`:
 
 ### Correction Accuracy
 - **Sentence-level**: 87.3% (on test set)
