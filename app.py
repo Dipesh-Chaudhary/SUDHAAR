@@ -235,6 +235,6 @@ st.markdown("""
     <p><strong>Semantic-Aware Nepali GEC System</strong></p>
     <p>Built with 🔥 using IRIIS-RESEARCH RoBERTa, Transformers & Streamlit</p>
     <p><em>Note: This is a research prototype. Corrections may not always be perfect.</em></p>
-    <p><small>Based on research by Sumit Aryal et al. | Models hosted on 🤗 HuggingFace</small></p>
+    <p><small>Inspired by research by Sumit Aryal et al. datasets | Models hosted on 🤗 HuggingFace</small></p>
 </div>
 """, unsafe_allow_html=True)
